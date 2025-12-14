@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: gridforce-db
+    environment:
+      POSTGRES_USER: gridforce
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: gridforce_core
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - gridforce-net
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    container_name: gridforce-orchestrator
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC}
+      - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY}
+      - BLOCKCHAIN_CONTRACT_ADDRESS=${BLOCKCHAIN_CONTRACT_ADDRESS}
+      - POSTGRES_USER=gridforce
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=gridforce_core
+    networks:
+      - gridforce-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  pgdata:
+
+networks:
+  gridforce-net:
+    driver: bridge

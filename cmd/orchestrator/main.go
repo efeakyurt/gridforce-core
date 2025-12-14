@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -384,14 +385,30 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dsn := "host=localhost user=gridforce password=secret dbname=gridforce_core port=5432 sslmode=disable"
+	// Database Configuration
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+	dsn := fmt.Sprintf("host=%s user=gridforce password=secret dbname=gridforce_core port=5432 sslmode=disable", dbHost)
 	db.InitDB(dsn)
 
-	// Initialize Blockchain Client
+	// Blockchain Configuration
 	var err error
-	rpcURL := "http://127.0.0.1:8545"
-	privKey := "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // Hardhat Account #0
-	contractAddr := "0x5FbDB2315678afecb367f032d93F642f64180aa3" // Hardhat Default Deployment
+	rpcURL := os.Getenv("BLOCKCHAIN_RPC")
+	if rpcURL == "" {
+		rpcURL = "http://127.0.0.1:8545"
+	}
+	
+	privKey := os.Getenv("BLOCKCHAIN_PRIVATE_KEY")
+	if privKey == "" {
+		log.Fatal("BLOCKCHAIN_PRIVATE_KEY is missing")
+	}
+
+	contractAddr := os.Getenv("BLOCKCHAIN_CONTRACT_ADDRESS")
+	if contractAddr == "" {
+		log.Fatal("BLOCKCHAIN_CONTRACT_ADDRESS is missing")
+	}
 	
 	chainClient, err = blockchain.NewClient(rpcURL, privKey, contractAddr)
 	if err != nil {

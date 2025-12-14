@@ -38,9 +38,19 @@ type Customer struct {
 
 func InitDB(dsn string) {
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	
+	// Retry loop for DB connection
+	for i := 0; i < 15; i++ {
+		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		log.Printf("Database not ready, retrying in 2 seconds... (%d/15)", i+1)
+		time.Sleep(2 * time.Second)
+	}
+
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal("Failed to connect to database after retries:", err)
 	}
 
 	log.Println("Database connection established")
