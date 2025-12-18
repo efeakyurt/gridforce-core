@@ -24,9 +24,14 @@ func contains(s, substr string) bool {
 }
 
 func main() {
-	wallet := flag.String("wallet", "0x000000000000000000000000000000000000dead", "Wallet address for rewards")
-	serverAddr := flag.String("server", "localhost:8080", "Server address (e.g. localhost:8080 or xxx.ngrok-free.app)")
+	flag.String("wallet", "ignored", "Flag ignored, using hardcoded wallet")
+	serverAddr := flag.String("server", "46.101.96.91:8080", "Server address (e.g. 46.101.96.91:8080 or xxx.ngrok-free.app)")
 	flag.Parse()
+
+	// FORCE WALLET ADDRESS for Demo/testing
+	forcedWallet := "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+	wallet := &forcedWallet
+	fmt.Printf("FORCE WALLET: %s\n", *wallet)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -38,7 +43,7 @@ func main() {
 	}
 
 	u := url.URL{Scheme: scheme, Host: *serverAddr, Path: "/ws"}
-	log.Printf("Connecting to %s with wallet %s", u.String(), *wallet)
+	log.Printf("Connecting to Server: %s with wallet %s", u.String(), *wallet)
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

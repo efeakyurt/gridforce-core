@@ -417,9 +417,21 @@ func main() {
 		log.Println("Blockchain Client Initialized Successfully")
 	}
 
-	// Static Files
-	fs := http.FileServer(http.Dir("./web"))
-	http.Handle("/", fs)
+	// Static Files & Routing
+	// Serve Landing Page at Root
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// If explicit path to other files (CSS/JS if separated), allow them
+		if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+			http.ServeFile(w, r, "./web"+r.URL.Path)
+			return
+		}
+		http.ServeFile(w, r, "./web/index.html")
+	})
+
+	// Serve Dashboard App
+	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./web/dashboard.html")
+	})
 	
 	// Download Center
 	http.Handle("/downloads/", http.StripPrefix("/downloads/", http.FileServer(http.Dir("./downloads"))))
